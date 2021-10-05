@@ -1,0 +1,1 @@
+curl -v -X POST -H "Content-Type: application/json" -d '{ "id": 45, "duration_seconds": 45, "date": "2021-10-03T15:55:45.233", "name": "IMG_0123.MOV", "tags": [ "Misule", "Honza"]}' localhost:8080/records/
