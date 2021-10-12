@@ -61,4 +61,9 @@ public class RecordsController {
     public Mono<ResponseEntity<Void>> deleteRecord(@PathVariable("id") long id) {
         return service.deleteRecord(new RecordId(id)).then(Mono.just(ResponseEntity.ok().build()));
     }
+
+    @GetMapping("/{id}")
+    public Mono<ResponseEntity<VideoRecordResource>> getById(@PathVariable("id") long id) {
+        return service.byId(new RecordId(id)).map(this::resource).map(ResponseEntity::ok).switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+    }
 }

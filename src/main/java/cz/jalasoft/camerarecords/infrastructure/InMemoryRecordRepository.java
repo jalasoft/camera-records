@@ -1,23 +1,25 @@
 package cz.jalasoft.camerarecords.infrastructure;
 
-import cz.jalasoft.camerarecords.domain.record.VideoRecord;
 import cz.jalasoft.camerarecords.domain.record.RecordId;
 import cz.jalasoft.camerarecords.domain.record.RecordRepository;
 import cz.jalasoft.camerarecords.domain.record.Tag;
+import cz.jalasoft.camerarecords.domain.record.VideoRecord;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
-import static java.time.Duration.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Set.*;
+import static java.time.Duration.ofSeconds;
+import static java.util.Set.of;
 
 @Repository
-public final class InMemoryRecordRepository implements RecordRepository {
+public class InMemoryRecordRepository implements RecordRepository {
 
     private static long idCounter = 0;
 
@@ -45,11 +47,6 @@ public final class InMemoryRecordRepository implements RecordRepository {
                     .build()
     );
 
-    public static void main(String[] args) {
-        var h = LocalDateTime.parse("2021-08-13T18:00:12.411");
-        System.out.println(h);
-    }
-
     private final Collection<VideoRecord> records;
 
     public InMemoryRecordRepository() {
@@ -57,24 +54,29 @@ public final class InMemoryRecordRepository implements RecordRepository {
         this.records.addAll(DATA);
     }
 
+    @Cacheable(value = "recordz")
     @Override
-    public Flux<VideoRecord> all() {
-        return Flux.fromIterable(records);
+    public Collection<VideoRecord> all() {
+        return new ArrayList<>(records);
     }
 
+    @Cacheable(value = "recordz")
     @Override
-    public Mono<VideoRecord> save(VideoRecord record) {
-        return Mono.fromCallable(()-> {
+    public Optional<VideoRecord> byId(RecordId id) {
+        return records.stream().filter(r -> r.id().equals(id)).findFirst();
+    }
+
+    @CachePut(value="recordz", key = "#record.id()")
+    @Override
+    public VideoRecord save(VideoRecord record) {
             var newRecord = record.toBuilder().id(new RecordId(idCounter++)).build();
             records.add(newRecord);
             return newRecord;
-        });
     }
 
+    @CacheEvict(value="recordz", key="#id")
     @Override
-    public Mono<Void> deleteById(RecordId id) {
-
-        return Mono.fromCallable(() -> {
+    public boolean deleteById(RecordId id) {
             VideoRecord found = null;
             for(var record : records) {
                 if (record.id().equals(id)) {
@@ -83,10 +85,8 @@ public final class InMemoryRecordRepository implements RecordRepository {
             }
 
             if (found == null) {
-                return Mono.error(new RuntimeException("No record with id " + id + " found."));
+                return false;
             }
-            records.remove(found);
-            return null;
-        }).then();
+            return records.remove(found);
     }
 }

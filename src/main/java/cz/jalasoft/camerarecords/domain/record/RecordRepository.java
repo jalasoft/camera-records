@@ -1,13 +1,15 @@
 package cz.jalasoft.camerarecords.domain.record;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import java.util.Collection;
+import java.util.Optional;
 
 public interface RecordRepository {
 
-    Flux<VideoRecord> all();
+    Collection<VideoRecord> all();
 
-    Mono<VideoRecord> save(VideoRecord record);
+    Optional<VideoRecord> byId(RecordId id);
 
-    Mono<Void> deleteById(RecordId id);
+    VideoRecord save(VideoRecord record);
+
+    boolean deleteById(RecordId id);
 }

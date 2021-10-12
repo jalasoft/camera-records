@@ -12,14 +12,18 @@ public class RecordService {
     private final RecordRepository repository;
 
     public Flux<VideoRecord> allRecords() {
-        return repository.all();
+        return Flux.fromIterable(repository.all());
+    }
+
+    public Mono<VideoRecord> byId(RecordId id) {
+        return repository.byId(id).map(Mono::just).orElse(Mono.empty());
     }
 
     public Mono<Void> saveRecord(VideoRecord record) {
-        return repository.save(record).then();
+        return Mono.fromCallable(() -> repository.save(record)).then();
     }
 
     public Mono<Void> deleteRecord(RecordId id) {
-        return repository.deleteById(id);
+        return Mono.fromCallable(()->repository.deleteById(id)).then();
     }
 }
