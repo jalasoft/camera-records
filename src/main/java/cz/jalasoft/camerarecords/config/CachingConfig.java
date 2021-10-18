@@ -13,7 +13,6 @@ import static java.time.Duration.*;
 @Configuration
 public class CachingConfig {
 
-
     @Bean
     public CacheManager cacheManager() {
         Caffeine caffeine = Caffeine.newBuilder()
