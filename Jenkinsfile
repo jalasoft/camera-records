@@ -1,11 +1,12 @@
 pipeline {
+    agent {
+        docker {
+            image 'maven17'
+        }
+    }
     stages {
         stage("build") {
-            echo 'builduju....'
-        }
-
-        stage("deploy") {
-            echo "deplojuju"
+            sh 'mvn clean package'
         }
     }
 }
